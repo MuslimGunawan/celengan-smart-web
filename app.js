@@ -18,9 +18,22 @@ let testState = {
 
 // Initialize on load
 document.addEventListener("DOMContentLoaded", () => {
-  // Read saved mode or default to real mode
-  const savedMode = localStorage.getItem("system_mode") || "real";
-  switchMode(savedMode);
+  // Selalu mulai dengan Mode Real demi keamanan agar simulator terkunci
+  switchMode("real");
+  
+  // Daftarkan input listener untuk verifikasi PIN otomatis (tanpa klik OK)
+  document.getElementById("test-pin-input").addEventListener("input", (e) => {
+    const pinVal = e.target.value;
+    document.getElementById("test-pin-error").style.visibility = "hidden";
+    
+    if (pinVal === "22222") {
+      switchMode("test");
+      closeTestModeModal();
+    } else if (pinVal.length === 5) {
+      document.getElementById("test-pin-error").style.visibility = "visible";
+      e.target.value = "";
+    }
+  });
 });
 
 // Switch between Real (Firebase) and Test (Simulation) modes
@@ -57,6 +70,36 @@ function switchMode(mode) {
     updateUI(testState);
     updateVirtualLCD(testState);
     updateVirtualServo(0);
+  }
+}
+
+// Request access to Test Mode (open PIN modal)
+function requestTestMode() {
+  if (systemMode === "test") return;
+  
+  const modal = document.getElementById("test-mode-modal");
+  const pinInput = document.getElementById("test-pin-input");
+  const pinError = document.getElementById("test-pin-error");
+  
+  pinInput.value = "";
+  pinError.style.visibility = "hidden";
+  modal.style.display = "flex";
+  pinInput.focus();
+}
+
+// Close PIN modal and restore active button highlights
+function closeTestModeModal() {
+  const modal = document.getElementById("test-mode-modal");
+  modal.style.display = "none";
+  
+  const realBtn = document.getElementById("mode-real");
+  const testBtn = document.getElementById("mode-test");
+  if (systemMode === "real") {
+    realBtn.classList.add("active");
+    testBtn.classList.remove("active");
+  } else {
+    realBtn.classList.remove("active");
+    testBtn.classList.add("active");
   }
 }
 

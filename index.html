@@ -27,7 +27,7 @@
       <!-- Mode Selector Tabs -->
       <div class="mode-selector-container">
         <button class="mode-btn active" id="mode-real" onclick="switchMode('real')">🌐 Mode Real (Firebase)</button>
-        <button class="mode-btn" id="mode-test" onclick="switchMode('test')">🎛️ Mode Test (Simulasi Offline)</button>
+        <button class="mode-btn" id="mode-test" onclick="requestTestMode()">🎛️ Mode Test (Simulasi Offline)</button>
       </div>
     </div>
 
@@ -159,6 +159,22 @@
     <footer>
       Celengan Smart Cloud IoT &copy; 2026. Dibuat untuk Sistem IOT Semester 4.
     </footer>
+  </div>
+
+  <!-- Modal PIN untuk Akses Mode Test -->
+  <div id="test-mode-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <svg style="width:36px;height:36px;color:var(--warning)" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg>
+        <h3>Akses Terkunci</h3>
+      </div>
+      <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1rem">Masukkan PIN Keamanan untuk mengaktifkan Mode Test (Simulator).</p>
+      <input type="password" id="test-pin-input" placeholder="•••••" maxlength="5" style="text-align:center;font-size:1.5rem;letter-spacing:0.5rem;width:160px;margin-bottom:1rem;color:white;background:rgba(255,255,255,0.05);border:1px solid var(--card-border);border-radius:12px;padding:0.5rem">
+      <p id="test-pin-error" style="color:var(--danger);font-size:0.85rem;font-weight:600;margin-bottom:1rem;visibility:hidden">PIN Salah! Akses Ditolak.</p>
+      <div class="modal-buttons">
+        <button class="btn btn-danger" onclick="closeTestModeModal()">Batal</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
