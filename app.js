@@ -37,6 +37,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Format input nominal penarikan dengan titik sebagai pemisah ribuan otomatis
+  document.getElementById("withdraw-amount-input").addEventListener("input", (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, "");
+    if (value) {
+      e.target.value = parseInt(value, 10).toLocaleString("id-ID");
+    } else {
+      e.target.value = "";
+    }
+  });
+
   // Jalankan pemeriksaan koneksi alat setiap 2 detik
   setInterval(checkDeviceConnection, 2000);
 });
@@ -606,7 +616,8 @@ function closeWithdrawModal() {
 
 function submitWithdraw() {
   const input = document.getElementById("withdraw-amount-input");
-  const amount = parseInt(input.value.trim());
+  const rawValue = input.value.replace(/\./g, ""); // Hapus pemisah ribuan titik
+  const amount = parseInt(rawValue, 10);
   
   if (isNaN(amount) || amount <= 0) {
     showToast("Masukkan jumlah penarikan yang valid!", "warning");
