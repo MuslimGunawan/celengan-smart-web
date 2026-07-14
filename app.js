@@ -248,12 +248,14 @@ function updateUI(data) {
   const preview = document.getElementById("color-preview");
   preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
   preview.innerText = `RGB(${r}, ${g}, ${b})`;
+
+  // Perbarui visualisasi LCD & Servo virtual di halaman web
+  updateVirtualLCD(data);
+  updateVirtualServo(data.isLocked ? 0 : 180);
 }
 
-// Update Virtual ST7735 LCD Screen representation (Test Mode)
+// Update Virtual ST7735 LCD Screen representation
 function updateVirtualLCD(state) {
-  if (systemMode !== "test") return;
-  
   document.getElementById("lcd-balance").innerText = "Rp " + (state.balance || 0).toLocaleString('id-ID');
   document.getElementById("lcd-lock-label").innerText = state.isLocked ? "[ LOCK ]" : "[ OPEN ]";
   document.getElementById("lcd-lock-label").style.color = state.isLocked ? "#f87171" : "#34d399";
