@@ -3,6 +3,7 @@ let db = null;
 let celenganRef = null;
 let currentCorrectPin = "1234";
 let systemMode = "real"; // "real" or "test"
+let lastHeartbeatReceivedTime = 0;
 
 // Default Firebase URL (Singapore Server)
 const DEFAULT_FIREBASE_URL = "https://celengan-smart-iot-default-rtdb.asia-southeast1.firebasedatabase.app/";
@@ -34,6 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.value = "";
     }
   });
+
+  // Jalankan pemeriksaan koneksi alat setiap 2 detik
+  setInterval(checkDeviceConnection, 2000);
 });
 
 // Switch between Real (Firebase) and Test (Simulation) modes
@@ -180,6 +184,9 @@ function initializeAndListen(dbUrl) {
         return;
       }
       
+      if (data.heartbeat !== undefined) {
+        lastHeartbeatReceivedTime = Date.now();
+      }
       currentCorrectPin = data.pin || "1234";
       updateStatus("Terhubung ke Cloud Database", "success");
       updateUI(data);
@@ -476,4 +483,24 @@ function simulateMoney(type) {
     updateUI(testState);
     updateVirtualLCD(testState);
   }, 3000);
+}
+
+// Check device connection status (Heartbeat check)
+function checkDeviceConnection() {
+  const badge = document.getElementById("device-status");
+  if (!badge) return;
+  
+  if (systemMode === "test") {
+    badge.innerText = "Alat: SIMULATOR";
+    badge.className = "device-status-badge online";
+  } else {
+    // Mode Real: Cek apakah data heartbeat baru diterima dalam 12 detik terakhir
+    if (lastHeartbeatReceivedTime > 0 && (Date.now() - lastHeartbeatReceivedTime < 12000)) {
+      badge.innerText = "Alat: ONLINE";
+      badge.className = "device-status-badge online";
+    } else {
+      badge.innerText = "Alat: OFFLINE";
+      badge.className = "device-status-badge offline";
+    }
+  }
 }

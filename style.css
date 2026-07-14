@@ -572,6 +572,49 @@ footer {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Device Status Badge (Keaktifan Alat) */
+.device-status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+}
+
+.device-status-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.device-status-badge.online {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.device-status-badge.online::before {
+  background: #34d399;
+  box-shadow: 0 0 8px #34d399;
+}
+
+.device-status-badge.offline {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.device-status-badge.offline::before {
+  background: #f87171;
+  box-shadow: 0 0 8px #f87171;
+}
+
 /* Animations and Responsive Styles */
 @media (max-width: 600px) {
   body {
