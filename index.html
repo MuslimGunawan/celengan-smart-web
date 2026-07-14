@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celengan Smart IoT Dashboard</title>
+  <meta name="description" content="Dashboard monitoring dan kontrol Celengan Pintar berbasis Cloud IoT.">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Firebase SDK (v8 Compat) via CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>CELENGAN SMART</h1>
+      <p id="system-status">Menghubungkan ke Cloud Database...</p>
+    </header>
+
+    <!-- Form Konfigurasi Firebase (Mempermudah Pengguna tanpa edit code) -->
+    <div class="card config-card" id="config-card">
+      <h2 class="card-title">⚙️ Konfigurasi Firebase</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Masukkan URL Firebase Realtime Database Anda untuk memulai sinkronisasi.</p>
+      <div class="input-group">
+        <label for="db-url-input">Firebase Database URL</label>
+        <div style="display:flex; gap:0.5rem">
+          <input type="text" id="db-url-input" placeholder="https://nama-proyek-rtdb.firebaseio.com/" style="flex:1">
+          <button class="btn" onclick="saveFirebaseConfig()">Hubungkan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Card 1: Balance -->
+      <div class="card">
+        <h2 class="card-title">💰 Saldo</h2>
+        <div class="balance-val" id="balance-val">Rp 0</div>
+        <p style="color: var(--text-muted)">Jumlah tabungan yang terkumpul di dalam celengan.</p>
+        <div class="btn-row">
+          <button class="btn btn-danger" id="btn-reset" onclick="resetBalance()" disabled>Reset Saldo</button>
+        </div>
+      </div>
+
+      <!-- Card 2: Security & Door Control -->
+      <div class="card">
+        <h2 class="card-title">🔒 Keamanan & Gerbang</h2>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div class="status-badge locked" id="lock-status">TERKUNCI</div>
+          <span id="status-msg" style="color: var(--text-muted)">Sistem Siaga</span>
+        </div>
+        
+        <div class="input-group">
+          <label for="unlock-pin">Masukkan PIN untuk Buka Laci</label>
+          <input type="password" id="unlock-pin" placeholder="PIN" maxlength="4" disabled>
+        </div>
+        
+        <button class="btn" id="btn-unlock" onclick="unlockBox()" disabled>
+          <svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg>
+          Buka Gerbang Laci
+        </button>
+        <div class="input-group">
+          <label for="pin-input">Ubah PIN Celengan</label>
+          <div style="display:flex; gap:0.5rem">
+            <input type="password" id="pin-input" placeholder="Masukkan 4 digit PIN baru" maxlength="4" disabled>
+            <button class="btn" id="btn-save-pin" onclick="changePin()" disabled>Simpan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Color Sensor Monitoring -->
+      <div class="card">
+        <h2 class="card-title">🎨 Sensor Warna (GY-31)</h2>
+        <div class="color-preview" id="color-preview" style="background-color: rgb(0,0,0)">
+          Deteksi Warna
+        </div>
+        <div class="rgb-bar-container">
+          <div class="rgb-bar">
+            <span class="bar-label">R</span>
+            <div class="bar-bg"><div class="bar-fill" id="fill-r" style="width: 0%"></div></div>
+            <span id="val-r" style="width:30px; text-align:right">0</span>
+          </div>
+          <div class="rgb-bar">
+            <span class="bar-label">G</span>
+            <div class="bar-bg"><div class="bar-fill" id="fill-g" style="width: 0%"></div></div>
+            <span id="val-g" style="width:30px; text-align:right">0</span>
+          </div>
+          <div class="rgb-bar">
+            <span class="bar-label">B</span>
+            <div class="bar-bg"><div class="bar-fill" id="fill-b" style="width: 0%"></div></div>
+            <span id="val-b" style="width:30px; text-align:right">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Celengan Smart Cloud IoT &copy; 2026. Dibuat untuk Sistem IOT Semester 4.
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
