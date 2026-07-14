@@ -18,9 +18,6 @@ let testState = {
 
 // Initialize on load
 document.addEventListener("DOMContentLoaded", () => {
-  const savedUrl = localStorage.getItem("firebase_db_url") || DEFAULT_FIREBASE_URL;
-  document.getElementById("db-url-input").value = savedUrl;
-  
   // Read saved mode or default to real mode
   const savedMode = localStorage.getItem("system_mode") || "real";
   switchMode(savedMode);
@@ -34,22 +31,18 @@ function switchMode(mode) {
   // Update UI buttons styling
   const realBtn = document.getElementById("mode-real");
   const testBtn = document.getElementById("mode-test");
-  const urlGroup = document.getElementById("firebase-url-group");
   const simCard = document.getElementById("simulation-card");
   
   if (mode === "real") {
     realBtn.classList.add("active");
     testBtn.classList.remove("active");
-    urlGroup.style.display = "flex";
     simCard.style.display = "none";
     
-    // Connect to Firebase
-    const url = document.getElementById("db-url-input").value.trim() || DEFAULT_FIREBASE_URL;
-    connectToFirebase(url);
+    // Connect automatically to default Singapore Firebase URL
+    connectToFirebase(DEFAULT_FIREBASE_URL);
   } else {
     realBtn.classList.remove("active");
     testBtn.classList.add("active");
-    urlGroup.style.display = "none";
     simCard.style.display = "block";
     
     // Disconnect from Firebase listener if active
@@ -93,26 +86,7 @@ function setControlsEnabled(enabled) {
   document.getElementById("btn-save-pin").disabled = !enabled;
 }
 
-// Save config from input form
-function saveFirebaseConfig() {
-  let url = document.getElementById("db-url-input").value.trim();
-  
-  if (!url) {
-    alert("URL database tidak boleh kosong!");
-    return;
-  }
-  
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    url = "https://" + url;
-  }
-  
-  if (!url.endsWith("/")) {
-    url = url + "/";
-  }
-  
-  localStorage.setItem("firebase_db_url", url);
-  connectToFirebase(url);
-}
+// Database config logic removed - Auto-connect active
 
 // Connect to Firebase RTDB
 function connectToFirebase(dbUrl) {

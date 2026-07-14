@@ -19,24 +19,15 @@
       <p id="system-status">Menghubungkan ke Cloud Database...</p>
     </header>
 
-    <!-- Form Konfigurasi Firebase & Mode Selector -->
+    <!-- Mode Selector Card -->
     <div class="card config-card" id="config-card">
-      <h2 class="card-title">⚙️ Mode Sistem & Konfigurasi</h2>
+      <h2 class="card-title">⚙️ Mode Sistem</h2>
       <p style="color: var(--text-muted); font-size: 0.9rem;">Pilih mode operasional dashboard untuk Celengan Smart Anda.</p>
       
       <!-- Mode Selector Tabs -->
       <div class="mode-selector-container">
         <button class="mode-btn active" id="mode-real" onclick="switchMode('real')">🌐 Mode Real (Firebase)</button>
         <button class="mode-btn" id="mode-test" onclick="switchMode('test')">🎛️ Mode Test (Simulasi Offline)</button>
-      </div>
-
-      <!-- Firebase URL Input (Only visible/active in Real Mode) -->
-      <div class="input-group" id="firebase-url-group">
-        <label for="db-url-input">Firebase Database URL</label>
-        <div style="display:flex; gap:0.5rem">
-          <input type="text" id="db-url-input" placeholder="https://nama-proyek-rtdb.firebaseio.com/" style="flex:1">
-          <button class="btn" onclick="saveFirebaseConfig()">Hubungkan</button>
-        </div>
       </div>
     </div>
 
