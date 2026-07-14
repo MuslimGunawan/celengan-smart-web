@@ -4,6 +4,7 @@ let celenganRef = null;
 let currentCorrectPin = "1234";
 let systemMode = "real"; // "real" or "test"
 let lastHeartbeatReceivedTime = 0;
+let currentBalance = 0;
 
 // Default Firebase URL (Singapore Server)
 const DEFAULT_FIREBASE_URL = "https://celengan-smart-iot-default-rtdb.asia-southeast1.firebasedatabase.app/";
@@ -125,6 +126,7 @@ function updateStatus(text, type = "normal") {
 
 // Enable/Disable dashboard controls
 function setControlsEnabled(enabled) {
+  document.getElementById("btn-withdraw").disabled = !enabled;
   document.getElementById("btn-reset").disabled = !enabled;
   document.getElementById("btn-unlock").disabled = !enabled;
   document.getElementById("unlock-pin").disabled = !enabled;
@@ -179,7 +181,7 @@ function initializeAndListen(dbUrl) {
           statusMessage: "READY",
           pin: "1234",
           sensor: { r: 0, g: 0, b: 0 },
-          commands: { unlock: false, reset: false, newPin: "" }
+          commands: { unlock: false, reset: false, newPin: "", updateBalance: -1 }
         });
         return;
       }
@@ -204,8 +206,8 @@ function initializeAndListen(dbUrl) {
 // Update UI elements with data (from Firebase or Test State)
 function updateUI(data) {
   // Update Balance
-  const balance = data.balance || 0;
-  document.getElementById("balance-val").innerText = "Rp " + balance.toLocaleString('id-ID');
+  currentBalance = data.balance || 0;
+  document.getElementById("balance-val").innerText = "Rp " + currentBalance.toLocaleString('id-ID');
 
   // Update Lock Status
   const lockBadge = document.getElementById("lock-status");
@@ -586,4 +588,80 @@ function closeConfirmModal(confirmed) {
 function isDeviceOnline() {
   if (systemMode === "test") return true;
   return lastHeartbeatReceivedTime > 0 && (Date.now() - lastHeartbeatReceivedTime < 12000);
+}
+
+// Custom Withdraw Modal Controllers
+function openWithdrawModal() {
+  const modal = document.getElementById("withdraw-modal");
+  const input = document.getElementById("withdraw-amount-input");
+  
+  input.value = "";
+  modal.style.display = "flex";
+  input.focus();
+}
+
+function closeWithdrawModal() {
+  document.getElementById("withdraw-modal").style.display = "none";
+}
+
+function submitWithdraw() {
+  const input = document.getElementById("withdraw-amount-input");
+  const amount = parseInt(input.value.trim());
+  
+  if (isNaN(amount) || amount <= 0) {
+    showToast("Masukkan jumlah penarikan yang valid!", "warning");
+    return;
+  }
+  
+  if (amount > currentBalance) {
+    showToast("Saldo tidak mencukupi untuk melakukan penarikan!", "error");
+    return;
+  }
+  
+  const newBalance = currentBalance - amount;
+  
+  if (systemMode === "real") {
+    // REAL MODE: Update Firebase database balance and trigger ESP8266 synchronization
+    if (!db) return;
+    
+    const online = isDeviceOnline();
+    if (!online) {
+      showToast("Alat sedang OFFLINE! Pengurangan saldo dikirim ke cloud antrean, saldo di layar celengan akan terupdate saat terhubung WiFi.", "warning");
+    }
+    
+    // Kirim patch saldo baru, perintah sinkronisasi, dan status penarikan
+    const updates = {
+      balance: newBalance,
+      statusMessage: `TARIK: Rp ${amount.toLocaleString('id-ID')}`
+    };
+    
+    db.ref("celengan").update(updates)
+      .then(() => {
+        return db.ref("celengan/commands").update({ updateBalance: newBalance });
+      })
+      .then(() => {
+        closeWithdrawModal();
+        if (online) {
+          showToast(`Berhasil menarik Rp ${amount.toLocaleString('id-ID')}!`, "success");
+        }
+      })
+      .catch((err) => {
+        showToast("Gagal memproses penarikan: " + err.message, "error");
+      });
+  } else {
+    // TEST MODE: Simulate withdrawal locally
+    testState.balance = newBalance;
+    testState.statusMessage = `TARIK: Rp ${amount.toLocaleString('id-ID')}`;
+    
+    updateUI(testState);
+    updateVirtualLCD(testState);
+    closeWithdrawModal();
+    showToast(`Berhasil menarik Rp ${amount.toLocaleString('id-ID')}!`, "success");
+    
+    setTimeout(() => {
+      testState.statusMessage = "READY";
+      updateUI(testState);
+      updateVirtualLCD(testState);
+    }, 3000);
+  }
 }

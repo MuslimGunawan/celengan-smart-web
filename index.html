@@ -97,7 +97,8 @@
         <div class="balance-val" id="balance-val">Rp 0</div>
         <p style="color: var(--text-muted)">Jumlah tabungan yang terkumpul di dalam celengan.</p>
         <div class="btn-row">
-          <button class="btn btn-danger" id="btn-reset" onclick="resetBalance()" disabled>Reset Saldo</button>
+          <button class="btn" id="btn-withdraw" onclick="openWithdrawModal()" disabled style="flex: 1;">Tarik Saldo</button>
+          <button class="btn btn-danger" id="btn-reset" onclick="resetBalance()" disabled style="flex: 1;">Reset Saldo</button>
         </div>
       </div>
 
@@ -191,6 +192,22 @@
       <div class="modal-buttons">
         <button class="btn btn-secondary" onclick="closeConfirmModal(false)">Batal</button>
         <button class="btn btn-danger" id="confirm-submit-btn">Ya, Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tarik Saldo Custom -->
+  <div id="withdraw-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <svg style="width:36px;height:36px;color:var(--primary)" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,6V14H13V6H11M11,16V18H13V16H11Z"/></svg>
+        <h3>Tarik Saldo</h3>
+      </div>
+      <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1rem">Masukkan jumlah uang yang ingin Anda ambil dari celengan.</p>
+      <input type="number" id="withdraw-amount-input" placeholder="Contoh: 10000" style="text-align:center;font-size:1.3rem;width:200px;margin-bottom:1.5rem;color:white;background:rgba(255,255,255,0.05);border:1px solid var(--card-border);border-radius:12px;padding:0.5rem">
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeWithdrawModal()">Batal</button>
+        <button class="btn" onclick="submitWithdraw()">Tarik</button>
       </div>
     </div>
   </div>
