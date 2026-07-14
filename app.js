@@ -88,6 +88,7 @@ function setControlsEnabled(enabled) {
   document.getElementById("btn-reset").disabled = !enabled;
   document.getElementById("btn-unlock").disabled = !enabled;
   document.getElementById("unlock-pin").disabled = !enabled;
+  document.getElementById("btn-lock").disabled = !enabled;
   document.getElementById("pin-input").disabled = !enabled;
   document.getElementById("btn-save-pin").disabled = !enabled;
 }
@@ -268,14 +269,14 @@ function unlockBox() {
       .then(() => {
         pinInput.value = "";
         setTimeout(() => {
-          btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Gerbang Laci`;
+          btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Laci`;
           btn.disabled = false;
           pinInput.disabled = false;
-        }, 4000);
+        }, 1000);
       })
       .catch((err) => {
         alert("Gagal mengirim perintah: " + err.message);
-        btn.innerHTML = "Buka Gerbang Laci";
+        btn.innerHTML = "Buka Laci";
         btn.disabled = false;
         pinInput.disabled = false;
       });
@@ -288,18 +289,46 @@ function unlockBox() {
     updateVirtualLCD(testState);
     updateVirtualServo(180);
     
-    // Automatically re-lock after 3.5 seconds
     setTimeout(() => {
-      testState.isLocked = true;
-      testState.statusMessage = "TERKUNCI";
-      updateUI(testState);
-      updateVirtualLCD(testState);
-      updateVirtualServo(0);
-      
-      btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Gerbang Laci`;
+      btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Laci`;
       btn.disabled = false;
       pinInput.disabled = false;
-    }, 3500);
+    }, 1000);
+  }
+}
+
+function lockBox() {
+  const btn = document.getElementById("btn-lock");
+  btn.innerText = "Mengunci...";
+  btn.disabled = true;
+
+  if (systemMode === "real") {
+    // REAL MODE: Write lock command to Firebase
+    if (!db) return;
+    db.ref("celengan/commands").update({ lock: true })
+      .then(() => {
+        setTimeout(() => {
+          btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M18,8H17V6A5,5 0 0,0 7,6V8H6A2,2 0 0,0 4,10V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V10A2,2 0 0,0 18,8M9,6A3,3 0 0,1 15,6V8H9M12,17A2,2 0 1,1 14,15A2,2 0 0,1 12,17Z"/></svg> Tutup Laci`;
+          btn.disabled = false;
+        }, 1000);
+      })
+      .catch((err) => {
+        alert("Gagal mengirim perintah kunci: " + err.message);
+        btn.innerHTML = "Tutup Laci";
+        btn.disabled = false;
+      });
+  } else {
+    // TEST MODE: Simulate offline locking locally
+    testState.isLocked = true;
+    testState.statusMessage = "TERKUNCI";
+    updateUI(testState);
+    updateVirtualLCD(testState);
+    updateVirtualServo(0);
+    
+    setTimeout(() => {
+      btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M18,8H17V6A5,5 0 0,0 7,6V8H6A2,2 0 0,0 4,10V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V10A2,2 0 0,0 18,8M9,6A3,3 0 0,1 15,6V8H9M12,17A2,2 0 1,1 14,15A2,2 0 0,1 12,17Z"/></svg> Tutup Laci`;
+      btn.disabled = false;
+    }, 1000);
   }
 }
 
