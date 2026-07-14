@@ -313,6 +313,208 @@ footer {
   letter-spacing: 0.02em;
 }
 
+/* Mode Selector styling */
+.mode-selector-container {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  padding: 4px;
+  border-radius: 16px;
+  margin-bottom: 1.25rem;
+}
+
+.mode-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.mode-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+/* Simulator Grid & Sections */
+.simulator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.sim-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sim-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--warning);
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.sim-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.btn-sim {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  font-size: 0.9rem;
+  padding: 0.75rem;
+  box-shadow: none;
+}
+
+.btn-sim:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--warning);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.virtual-hardware-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Virtual TFT LCD Screen (Mini 160x80 representation) */
+.virtual-lcd {
+  width: 240px;
+  height: 120px;
+  background: #000;
+  border: 4px solid #333;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  font-family: monospace;
+  color: #fff;
+  font-size: 0.8rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  align-self: center;
+}
+
+.lcd-header {
+  background: #00f;
+  padding: 2px 4px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+.lcd-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px;
+  gap: 4px;
+}
+
+.lcd-label {
+  color: #aaa;
+  font-size: 0.7rem;
+}
+
+.lcd-balance {
+  color: #0f0;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.lcd-ip {
+  color: #888;
+  font-size: 0.7rem;
+}
+
+.lcd-footer {
+  background: #005a5a;
+  color: #ff0;
+  padding: 2px 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Virtual SG90 Servo illustration */
+.virtual-servo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.virtual-servo-motor {
+  width: 80px;
+  height: 80px;
+  background: #3b82f6;
+  border-radius: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #1d4ed8;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.servo-body {
+  width: 40px;
+  height: 40px;
+  background: #1e3a8a;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.servo-horn {
+  width: 6px;
+  height: 34px;
+  background: #ffffff;
+  border-radius: 3px;
+  position: absolute;
+  transform-origin: 50% 50%;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.servo-horn::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: #9ca3af;
+  border-radius: 50%;
+  position: absolute;
+  top: 11px;
+  left: -3px;
+}
+
+.servo-angle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 /* Animations and Responsive Styles */
 @media (max-width: 600px) {
   body {

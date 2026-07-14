@@ -19,15 +19,79 @@
       <p id="system-status">Menghubungkan ke Cloud Database...</p>
     </header>
 
-    <!-- Form Konfigurasi Firebase (Mempermudah Pengguna tanpa edit code) -->
+    <!-- Form Konfigurasi Firebase & Mode Selector -->
     <div class="card config-card" id="config-card">
-      <h2 class="card-title">⚙️ Konfigurasi Firebase</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">Masukkan URL Firebase Realtime Database Anda untuk memulai sinkronisasi.</p>
-      <div class="input-group">
+      <h2 class="card-title">⚙️ Mode Sistem & Konfigurasi</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Pilih mode operasional dashboard untuk Celengan Smart Anda.</p>
+      
+      <!-- Mode Selector Tabs -->
+      <div class="mode-selector-container">
+        <button class="mode-btn active" id="mode-real" onclick="switchMode('real')">🌐 Mode Real (Firebase)</button>
+        <button class="mode-btn" id="mode-test" onclick="switchMode('test')">🎛️ Mode Test (Simulasi Offline)</button>
+      </div>
+
+      <!-- Firebase URL Input (Only visible/active in Real Mode) -->
+      <div class="input-group" id="firebase-url-group">
         <label for="db-url-input">Firebase Database URL</label>
         <div style="display:flex; gap:0.5rem">
           <input type="text" id="db-url-input" placeholder="https://nama-proyek-rtdb.firebaseio.com/" style="flex:1">
           <button class="btn" onclick="saveFirebaseConfig()">Hubungkan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Hardware Simulator (Hanya muncul di Mode Test) -->
+    <div class="card simulation-card" id="simulation-card" style="display: none;">
+      <h2 class="card-title">🎛️ Panel Simulasi Alat (Hardware Simulator)</h2>
+      <p style="color: var(--warning); font-size: 0.9rem; font-weight: 600;">⚠️ Mode Test Aktif: Web berjalan offline tanpa membutuhkan alat ESP8266 nyata.</p>
+      
+      <div class="simulator-grid">
+        <!-- Section A: Input Koin / Uang Kertas -->
+        <div class="sim-section">
+          <h3 class="sim-section-title">💸 Masukkan Uang (Slot Sensor Warna)</h3>
+          <div class="sim-buttons-grid">
+            <button class="btn btn-sim" onclick="simulateMoney('COIN_500')">+ Rp 500 (Emas)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('COIN_1000')">+ Rp 1.000 (Perak)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('NOTE_2000')">+ Rp 2.000 (Abu-abu)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('NOTE_5000')">+ Rp 5.000 (Kuning)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('NOTE_10000')">+ Rp 10.000 (Ungu)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('NOTE_20000')">+ Rp 20.000 (Hijau)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('NOTE_50000')">+ Rp 50.000 (Biru)</button>
+            <button class="btn btn-sim" onclick="simulateMoney('NOTE_100000')">+ Rp 100.000 (Merah)</button>
+          </div>
+        </div>
+
+        <!-- Section B: Virtual LCD & Servo -->
+        <div class="sim-section">
+          <h3 class="sim-section-title">🖥️ Output Virtual Hardware</h3>
+          <div class="virtual-hardware-flex">
+            <!-- Virtual LCD TFT ST7735 -->
+            <div class="virtual-lcd" id="virtual-lcd">
+              <div class="lcd-header" id="lcd-header">
+                <span>CELENGAN SMART</span>
+                <span id="lcd-lock-label">[ LOCK ]</span>
+              </div>
+              <div class="lcd-body">
+                <span class="lcd-label">Saldo Tabungan:</span>
+                <span class="lcd-balance" id="lcd-balance">Rp 0</span>
+                <span class="lcd-ip" id="lcd-ip">IP: 192.168.4.1</span>
+              </div>
+              <div class="lcd-footer" id="lcd-footer">
+                Status: READY
+              </div>
+            </div>
+
+            <!-- Virtual Servo Motor SG90 -->
+            <div class="virtual-servo-container">
+              <span class="sim-label">Virtual Servo SG90:</span>
+              <div class="virtual-servo-motor">
+                <div class="servo-body">
+                  <div class="servo-horn" id="servo-horn" style="transform: rotate(0deg);"></div>
+                </div>
+              </div>
+              <span class="servo-angle" id="servo-angle">Sudut: 0&deg; (Terkunci)</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

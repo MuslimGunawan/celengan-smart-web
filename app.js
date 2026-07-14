@@ -1,19 +1,71 @@
 // Global variables
-let firebaseApp = null;
 let db = null;
 let celenganRef = null;
 let currentCorrectPin = "1234";
+let systemMode = "real"; // "real" or "test"
+
+// Default Firebase URL (Singapore Server)
+const DEFAULT_FIREBASE_URL = "https://celengan-smart-iot-default-rtdb.asia-southeast1.firebasedatabase.app/";
+
+// Test Mode state (Simulation data)
+let testState = {
+  balance: 0,
+  isLocked: true,
+  statusMessage: "READY",
+  pin: "1234",
+  sensor: { r: 0, g: 0, b: 0 }
+};
 
 // Initialize on load
 document.addEventListener("DOMContentLoaded", () => {
-  const savedUrl = localStorage.getItem("firebase_db_url");
-  if (savedUrl) {
-    document.getElementById("db-url-input").value = savedUrl;
-    connectToFirebase(savedUrl);
-  } else {
-    updateStatus("Masukkan URL Firebase Realtime Database Anda di atas.", "warning");
-  }
+  const savedUrl = localStorage.getItem("firebase_db_url") || DEFAULT_FIREBASE_URL;
+  document.getElementById("db-url-input").value = savedUrl;
+  
+  // Read saved mode or default to real mode
+  const savedMode = localStorage.getItem("system_mode") || "real";
+  switchMode(savedMode);
 });
+
+// Switch between Real (Firebase) and Test (Simulation) modes
+function switchMode(mode) {
+  systemMode = mode;
+  localStorage.setItem("system_mode", mode);
+  
+  // Update UI buttons styling
+  const realBtn = document.getElementById("mode-real");
+  const testBtn = document.getElementById("mode-test");
+  const urlGroup = document.getElementById("firebase-url-group");
+  const simCard = document.getElementById("simulation-card");
+  
+  if (mode === "real") {
+    realBtn.classList.add("active");
+    testBtn.classList.remove("active");
+    urlGroup.style.display = "flex";
+    simCard.style.display = "none";
+    
+    // Connect to Firebase
+    const url = document.getElementById("db-url-input").value.trim() || DEFAULT_FIREBASE_URL;
+    connectToFirebase(url);
+  } else {
+    realBtn.classList.remove("active");
+    testBtn.classList.add("active");
+    urlGroup.style.display = "none";
+    simCard.style.display = "block";
+    
+    // Disconnect from Firebase listener if active
+    if (celenganRef) {
+      celenganRef.off();
+    }
+    
+    // Inisialisasi data test lokal
+    currentCorrectPin = testState.pin;
+    updateStatus("Berjalan dalam Mode Test (Offline Simulator)", "warning");
+    setControlsEnabled(true);
+    updateUI(testState);
+    updateVirtualLCD(testState);
+    updateVirtualServo(0);
+  }
+}
 
 // Update connection status label
 function updateStatus(text, type = "normal") {
@@ -49,7 +101,6 @@ function saveFirebaseConfig() {
     return;
   }
   
-  // Format check
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
     url = "https://" + url;
   }
@@ -68,7 +119,6 @@ function connectToFirebase(dbUrl) {
   setControlsEnabled(false);
   
   try {
-    // Delete existing app if already initialized to allow switching URLs
     if (firebase.apps.length > 0) {
       firebase.app().delete().then(() => {
         initializeAndListen(dbUrl);
@@ -94,6 +144,8 @@ function initializeAndListen(dbUrl) {
     
     // Listen for changes
     celenganRef.on("value", (snapshot) => {
+      if (systemMode !== "real") return; // Ignore if switched to test mode
+      
       const data = snapshot.val();
       
       if (!data) {
@@ -115,7 +167,7 @@ function initializeAndListen(dbUrl) {
       updateUI(data);
     }, (error) => {
       console.error("Read error:", error);
-      updateStatus("Error membaca database: Permission Denied atau URL Salah.", "danger");
+      updateStatus("Error: Permission Denied atau URL Firebase Salah.", "danger");
       setControlsEnabled(false);
     });
   } catch (err) {
@@ -124,7 +176,7 @@ function initializeAndListen(dbUrl) {
   }
 }
 
-// Update UI elements with data from Firebase
+// Update UI elements with data (from Firebase or Test State)
 function updateUI(data) {
   // Update Balance
   const balance = data.balance || 0;
@@ -161,10 +213,35 @@ function updateUI(data) {
   preview.innerText = `RGB(${r}, ${g}, ${b})`;
 }
 
-// Commands triggers
-function unlockBox() {
-  if (!db) return;
+// Update Virtual ST7735 LCD Screen representation (Test Mode)
+function updateVirtualLCD(state) {
+  if (systemMode !== "test") return;
   
+  document.getElementById("lcd-balance").innerText = "Rp " + (state.balance || 0).toLocaleString('id-ID');
+  document.getElementById("lcd-lock-label").innerText = state.isLocked ? "[ LOCK ]" : "[ OPEN ]";
+  document.getElementById("lcd-lock-label").style.color = state.isLocked ? "#f87171" : "#34d399";
+  document.getElementById("lcd-footer").innerText = "Status: " + (state.statusMessage || "READY");
+}
+
+// Animate Virtual Servo SG90 (Test Mode)
+function updateVirtualServo(angle) {
+  const horn = document.getElementById("servo-horn");
+  const angleLabel = document.getElementById("servo-angle");
+  
+  if (horn && angleLabel) {
+    horn.style.transform = `rotate(${angle}deg)`;
+    if (angle === 180) {
+      angleLabel.innerHTML = `Sudut: 180&deg; (Terbuka)`;
+      angleLabel.style.color = "var(--success)";
+    } else {
+      angleLabel.innerHTML = `Sudut: 0&deg; (Terkunci)`;
+      angleLabel.style.color = "var(--text-muted)";
+    }
+  }
+}
+
+// Commands triggers (Unlock, Reset, Change PIN)
+function unlockBox() {
   const pinInput = document.getElementById("unlock-pin");
   const pinVal = pinInput.value.trim();
   
@@ -183,38 +260,75 @@ function unlockBox() {
   btn.innerText = "Membuka...";
   btn.disabled = true;
   pinInput.disabled = true;
-  
-  // Set unlock command in Firebase
-  db.ref("celengan/commands").update({ unlock: true })
-    .then(() => {
-      pinInput.value = "";
-      // Re-enable button after 4 seconds (giving the hardware time to complete)
-      setTimeout(() => {
-        btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Gerbang Laci`;
+
+  if (systemMode === "real") {
+    // REAL MODE: Write command to Firebase
+    if (!db) return;
+    db.ref("celengan/commands").update({ unlock: true })
+      .then(() => {
+        pinInput.value = "";
+        setTimeout(() => {
+          btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Gerbang Laci`;
+          btn.disabled = false;
+          pinInput.disabled = false;
+        }, 4000);
+      })
+      .catch((err) => {
+        alert("Gagal mengirim perintah: " + err.message);
+        btn.innerHTML = "Buka Gerbang Laci";
         btn.disabled = false;
         pinInput.disabled = false;
-      }, 4000);
-    })
-    .catch((err) => {
-      alert("Gagal mengirim perintah: " + err.message);
-      btn.innerHTML = "Buka Gerbang Laci";
+      });
+  } else {
+    // TEST MODE: Simulate offline behavior locally
+    pinInput.value = "";
+    testState.isLocked = false;
+    testState.statusMessage = "TERBUKA (Web)";
+    updateUI(testState);
+    updateVirtualLCD(testState);
+    updateVirtualServo(180);
+    
+    // Automatically re-lock after 3.5 seconds
+    setTimeout(() => {
+      testState.isLocked = true;
+      testState.statusMessage = "TERKUNCI";
+      updateUI(testState);
+      updateVirtualLCD(testState);
+      updateVirtualServo(0);
+      
+      btn.innerHTML = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg> Buka Gerbang Laci`;
       btn.disabled = false;
       pinInput.disabled = false;
-    });
+    }, 3500);
+  }
 }
 
 function resetBalance() {
-  if (!db) return;
-  if (confirm("Apakah Anda yakin ingin me-reset saldo celengan menjadi Rp 0?")) {
-    db.ref("celengan/commands").update({ reset: true })
-      .catch((err) => {
-        alert("Gagal mengirim perintah reset: " + err.message);
-      });
+  if (systemMode === "real") {
+    if (!db) return;
+    if (confirm("Apakah Anda yakin ingin me-reset saldo celengan menjadi Rp 0?")) {
+      db.ref("celengan/commands").update({ reset: true })
+        .catch((err) => {
+          alert("Gagal mengirim perintah reset: " + err.message);
+        });
+    }
+  } else {
+    if (confirm("Apakah Anda yakin ingin me-reset saldo simulasi menjadi Rp 0?")) {
+      testState.balance = 0;
+      testState.statusMessage = "SALDO DIRESET";
+      updateUI(testState);
+      updateVirtualLCD(testState);
+      
+      setTimeout(() => {
+        testState.statusMessage = "READY";
+        updateUI(testState);
+        updateVirtualLCD(testState);
+      }, 3000);
+    }
   }
 }
 
 function changePin() {
-  if (!db) return;
   const pinInput = document.getElementById("pin-input");
   const pinVal = pinInput.value.trim();
   
@@ -227,16 +341,93 @@ function changePin() {
   btn.innerText = "Menyimpan...";
   btn.disabled = true;
   
-  db.ref("celengan/commands").update({ newPin: pinVal })
-    .then(() => {
-      alert("Perintah perubahan PIN dikirim ke celengan!");
-      pinInput.value = "";
-      btn.innerText = "Simpan";
-      btn.disabled = false;
-    })
-    .catch((err) => {
-      alert("Gagal mengubah PIN: " + err.message);
-      btn.innerText = "Simpan";
-      btn.disabled = false;
-    });
+  if (systemMode === "real") {
+    if (!db) return;
+    db.ref("celengan/commands").update({ newPin: pinVal })
+      .then(() => {
+        alert("Perintah perubahan PIN dikirim ke celengan!");
+        pinInput.value = "";
+        btn.innerText = "Simpan";
+        btn.disabled = false;
+      })
+      .catch((err) => {
+        alert("Gagal mengubah PIN: " + err.message);
+        btn.innerText = "Simpan";
+        btn.disabled = false;
+      });
+  } else {
+    testState.pin = pinVal;
+    currentCorrectPin = pinVal;
+    alert("PIN Simulasi berhasil diubah menjadi: " + pinVal);
+    pinInput.value = "";
+    btn.innerText = "Simpan";
+    btn.disabled = false;
+  }
+}
+
+// Simulate Money Deposit (Only used in Test Mode)
+function simulateMoney(type) {
+  if (systemMode !== "test") return;
+  
+  let depositAmount = 0;
+  let depositName = "";
+  let r = 0, g = 0, b = 0;
+  
+  switch(type) {
+    case 'COIN_500':
+      depositAmount = 500;
+      depositName = "Rp 500 (Emas)";
+      r = 180; g = 150; b = 30; // Brass/gold
+      break;
+    case 'COIN_1000':
+      depositAmount = 1000;
+      depositName = "Rp 1000 (Perak)";
+      r = 180; g = 180; b = 180; // Silver
+      break;
+    case 'NOTE_2000':
+      depositAmount = 2000;
+      depositName = "Kertas Rp 2.000";
+      r = 110; g = 120; b = 110; // Grey/greenish
+      break;
+    case 'NOTE_5000':
+      depositAmount = 5000;
+      depositName = "Kertas Rp 5.000";
+      r = 190; g = 150; b = 50; // Yellowish
+      break;
+    case 'NOTE_10000':
+      depositAmount = 10000;
+      depositName = "Kertas Rp 10.000";
+      r = 160; g = 70; b = 180; // Purple
+      break;
+    case 'NOTE_20000':
+      depositAmount = 20000;
+      depositName = "Kertas Rp 20.000";
+      r = 50; g = 180; b = 70; // Green
+      break;
+    case 'NOTE_50000':
+      depositAmount = 50000;
+      depositName = "Kertas Rp 50.000";
+      r = 30; g = 100; b = 200; // Blue
+      break;
+    case 'NOTE_100000':
+      depositAmount = 100000;
+      depositName = "Kertas Rp 100.000";
+      r = 220; g = 40; b = 50; // Red
+      break;
+  }
+  
+  testState.balance += depositAmount;
+  testState.sensor = { r, g, b };
+  testState.statusMessage = "MASUK: " + depositName;
+  
+  updateUI(testState);
+  updateVirtualLCD(testState);
+  
+  // Clear status back to normal after 3 seconds
+  setTimeout(() => {
+    testState.statusMessage = "READY";
+    testState.sensor = { r: 0, g: 0, b: 0 };
+    updateUI(testState);
+    updateVirtualLCD(testState);
+  }, 3000);
 }
