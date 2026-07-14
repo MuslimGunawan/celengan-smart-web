@@ -180,6 +180,24 @@
     </div>
   </div>
 
+  <!-- Modal Konfirmasi Custom -->
+  <div id="confirm-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <svg style="width:36px;height:36px;color:var(--danger)" viewBox="0 0 24 24"><path fill="currentColor" d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/></svg>
+        <h3 id="confirm-title">Konfirmasi Tindakan</h3>
+      </div>
+      <p id="confirm-message" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1.5rem">Apakah Anda yakin ingin melanjutkan?</p>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeConfirmModal(false)">Batal</button>
+        <button class="btn btn-danger" id="confirm-submit-btn">Ya, Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wadah Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
   <script src="app.js"></script>
 </body>
 </html>

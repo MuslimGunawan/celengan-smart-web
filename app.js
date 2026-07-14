@@ -271,12 +271,12 @@ function unlockBox() {
   const pinVal = pinInput.value.trim();
   
   if (!pinVal) {
-    alert("Masukkan PIN terlebih dahulu untuk membuka laci!");
+    showToast("Masukkan PIN terlebih dahulu untuk membuka laci!", "warning");
     return;
   }
   
   if (pinVal !== currentCorrectPin) {
-    alert("PIN Salah! Akses ditolak.");
+    showToast("PIN Salah! Akses ditolak.", "error");
     pinInput.value = "";
     return;
   }
@@ -299,7 +299,7 @@ function unlockBox() {
         }, 1000);
       })
       .catch((err) => {
-        alert("Gagal mengirim perintah: " + err.message);
+        showToast("Gagal mengirim perintah: " + err.message, "error");
         btn.innerHTML = "Buka Laci";
         btn.disabled = false;
         pinInput.disabled = false;
@@ -337,7 +337,7 @@ function lockBox() {
         }, 1000);
       })
       .catch((err) => {
-        alert("Gagal mengirim perintah kunci: " + err.message);
+        showToast("Gagal mengirim perintah kunci: " + err.message, "error");
         btn.innerHTML = "Tutup Laci";
         btn.disabled = false;
       });
@@ -357,20 +357,22 @@ function lockBox() {
 }
 
 function resetBalance() {
-  if (systemMode === "real") {
-    if (!db) return;
-    if (confirm("Apakah Anda yakin ingin me-reset saldo celengan menjadi Rp 0?")) {
+  const resetAction = () => {
+    if (systemMode === "real") {
+      if (!db) return;
       db.ref("celengan/commands").update({ reset: true })
+        .then(() => {
+          showToast("Perintah reset dikirim ke celengan!", "success");
+        })
         .catch((err) => {
-          alert("Gagal mengirim perintah reset: " + err.message);
+          showToast("Gagal mengirim perintah reset: " + err.message, "error");
         });
-    }
-  } else {
-    if (confirm("Apakah Anda yakin ingin me-reset saldo simulasi menjadi Rp 0?")) {
+    } else {
       testState.balance = 0;
       testState.statusMessage = "SALDO DIRESET";
       updateUI(testState);
       updateVirtualLCD(testState);
+      showToast("Saldo simulasi berhasil direset!", "success");
       
       setTimeout(() => {
         testState.statusMessage = "READY";
@@ -378,7 +380,10 @@ function resetBalance() {
         updateVirtualLCD(testState);
       }, 3000);
     }
-  }
+  };
+  
+  const targetText = systemMode === "real" ? "celengan fisik" : "simulasi";
+  showConfirm("Reset Saldo", `Apakah Anda yakin ingin me-reset saldo ${targetText} menjadi Rp 0?`, resetAction);
 }
 
 function changePin() {
@@ -386,7 +391,7 @@ function changePin() {
   const pinVal = pinInput.value.trim();
   
   if (pinVal.length !== 4 || isNaN(pinVal)) {
-    alert("PIN harus berupa 4 digit angka!");
+    showToast("PIN harus berupa 4 digit angka!", "warning");
     return;
   }
   
@@ -398,20 +403,20 @@ function changePin() {
     if (!db) return;
     db.ref("celengan/commands").update({ newPin: pinVal })
       .then(() => {
-        alert("Perintah perubahan PIN dikirim ke celengan!");
+        showToast("Perintah perubahan PIN dikirim ke celengan!", "success");
         pinInput.value = "";
         btn.innerText = "Simpan";
         btn.disabled = false;
       })
       .catch((err) => {
-        alert("Gagal mengubah PIN: " + err.message);
+        showToast("Gagal mengubah PIN: " + err.message, "error");
         btn.innerText = "Simpan";
         btn.disabled = false;
       });
   } else {
     testState.pin = pinVal;
     currentCorrectPin = pinVal;
-    alert("PIN Simulasi berhasil diubah menjadi: " + pinVal);
+    showToast("PIN Simulasi berhasil diubah menjadi: " + pinVal, "success");
     pinInput.value = "";
     btn.innerText = "Simpan";
     btn.disabled = false;
@@ -503,4 +508,56 @@ function checkDeviceConnection() {
       badge.className = "device-status-badge offline";
     }
   }
+}
+
+// Custom Toast Notification System
+function showToast(message, type = 'success') {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+  
+  // Hapus toast lama yang bertumpuk jika terlalu banyak
+  if (container.children.length >= 3) {
+    container.children[0].remove();
+  }
+  
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  
+  let icon = "";
+  if (type === "success") {
+    icon = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/></svg>`;
+  } else if (type === "error") {
+    icon = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M13 17H11V15H13V17M13 13H11V7H13V13Z"/></svg>`;
+  } else if (type === "warning") {
+    icon = `<svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 13C11.4 13 11 12.6 11 12V8C11 7.4 11.4 7 12 7S13 7.4 13 8V12C13 12.6 12.6 13 12 13M13 17H11V15H13V17Z"/></svg>`;
+  }
+  
+  toast.innerHTML = `${icon} <span>${message}</span>`;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+// Custom Confirm Modal System
+function showConfirm(title, message, callback) {
+  document.getElementById("confirm-title").innerText = title;
+  document.getElementById("confirm-message").innerText = message;
+  
+  const modal = document.getElementById("confirm-modal");
+  modal.style.display = "flex";
+  
+  const submitBtn = document.getElementById("confirm-submit-btn");
+  const newSubmitBtn = submitBtn.cloneNode(true);
+  submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+  
+  newSubmitBtn.addEventListener("click", () => {
+    closeConfirmModal(true);
+    if (callback) callback();
+  });
+}
+
+function closeConfirmModal(confirmed) {
+  document.getElementById("confirm-modal").style.display = "none";
 }
