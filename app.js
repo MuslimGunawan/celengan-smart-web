@@ -191,7 +191,7 @@ function initializeAndListen(dbUrl) {
           statusMessage: "READY",
           pin: "1234",
           sensor: { r: 0, g: 0, b: 0 },
-          commands: { unlock: false, reset: false, newPin: "", updateBalance: -1 }
+          commands: { unlock: false, lock: false, reset: false, newPin: "", updateBalance: -1 }
         });
         return;
       }
@@ -308,7 +308,7 @@ function unlockBox() {
       showToast("Alat sedang OFFLINE! Perintah dikirim ke cloud antrean, laci akan terbuka saat alat terhubung WiFi.", "warning");
     }
     
-    db.ref("celengan/commands").update({ unlock: true })
+    db.ref("celengan/commands").update({ unlock: true, lock: false })
       .then(() => {
         pinInput.value = "";
         if (online) {
@@ -358,7 +358,7 @@ function lockBox() {
       showToast("Alat sedang OFFLINE! Perintah dikirim ke cloud antrean, laci akan terkunci saat alat terhubung WiFi.", "warning");
     }
     
-    db.ref("celengan/commands").update({ lock: true })
+    db.ref("celengan/commands").update({ lock: true, unlock: false })
       .then(() => {
         if (online) {
           showToast("Perintah tutup laci dikirim!", "success");
