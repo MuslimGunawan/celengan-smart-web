@@ -249,17 +249,8 @@ function updateUI(data) {
   preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
   preview.innerText = `RGB(${r}, ${g}, ${b})`;
 
-  // Perbarui visualisasi LCD & Servo virtual di halaman web
-  updateVirtualLCD(data);
+  // Perbarui visualisasi Servo virtual di halaman web
   updateVirtualServo(data.isLocked ? 0 : 180);
-}
-
-// Update Virtual ST7735 LCD Screen representation
-function updateVirtualLCD(state) {
-  document.getElementById("lcd-balance").innerText = "Rp " + (state.balance || 0).toLocaleString('id-ID');
-  document.getElementById("lcd-lock-label").innerText = state.isLocked ? "[ LOCK ]" : "[ OPEN ]";
-  document.getElementById("lcd-lock-label").style.color = state.isLocked ? "#f87171" : "#34d399";
-  document.getElementById("lcd-footer").innerText = "Status: " + (state.statusMessage || "READY");
 }
 
 // Animate Virtual Servo SG90 (Test Mode)
@@ -334,7 +325,6 @@ function unlockBox() {
     testState.isLocked = false;
     testState.statusMessage = "TERBUKA (Web)";
     updateUI(testState);
-    updateVirtualLCD(testState);
     updateVirtualServo(180);
     
     setTimeout(() => {
@@ -380,7 +370,6 @@ function lockBox() {
     testState.isLocked = true;
     testState.statusMessage = "TERKUNCI";
     updateUI(testState);
-    updateVirtualLCD(testState);
     updateVirtualServo(0);
     
     setTimeout(() => {
@@ -405,13 +394,11 @@ function resetBalance() {
       testState.balance = 0;
       testState.statusMessage = "SALDO DIRESET";
       updateUI(testState);
-      updateVirtualLCD(testState);
       showToast("Saldo simulasi berhasil direset!", "success");
       
       setTimeout(() => {
         testState.statusMessage = "READY";
         updateUI(testState);
-        updateVirtualLCD(testState);
       }, 3000);
     }
   };
@@ -513,14 +500,12 @@ function simulateMoney(type) {
   testState.statusMessage = "MASUK: " + depositName;
   
   updateUI(testState);
-  updateVirtualLCD(testState);
   
   // Clear status back to normal after 3 seconds
   setTimeout(() => {
     testState.statusMessage = "READY";
     testState.sensor = { r: 0, g: 0, b: 0 };
     updateUI(testState);
-    updateVirtualLCD(testState);
   }, 3000);
 }
 
@@ -667,14 +652,12 @@ function submitWithdraw() {
     testState.statusMessage = `TARIK: Rp ${amount.toLocaleString('id-ID')}`;
     
     updateUI(testState);
-    updateVirtualLCD(testState);
     closeWithdrawModal();
     showToast(`Berhasil menarik Rp ${amount.toLocaleString('id-ID')}!`, "success");
     
     setTimeout(() => {
       testState.statusMessage = "READY";
       updateUI(testState);
-      updateVirtualLCD(testState);
     }, 3000);
   }
 }

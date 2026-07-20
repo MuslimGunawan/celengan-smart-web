@@ -121,28 +121,12 @@
         </div>
       </div>
 
-      <!-- Card 4: Monitor Fisik Alat (Virtual Hardware Status) -->
+      <!-- Card 4: Posisi Servo Laci (Virtual Servo) -->
       <div class="card">
-        <h2 class="card-title">🖥️ Monitor Fisik Alat (Virtual Hardware)</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Visualisasi kondisi layar LCD TFT dan sudut Servo celengan secara real-time.</p>
+        <h2 class="card-title">🖥️ Posisi Servo Laci (Virtual Servo)</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Visualisasi posisi motor servo pengunci laci celengan secara real-time.</p>
         
-        <div class="virtual-hardware-flex" style="flex-direction: column; gap: 1.5rem; align-items: center; justify-content: center;">
-          <!-- Virtual LCD TFT ST7735 -->
-          <div class="virtual-lcd" id="virtual-lcd" style="margin: 0 auto; width: 100%; max-width: 280px;">
-            <div class="lcd-header" id="lcd-header">
-              <span>CELENGAN SMART</span>
-              <span id="lcd-lock-label">[ LOCK ]</span>
-            </div>
-            <div class="lcd-body">
-              <span class="lcd-label">Saldo Tabungan:</span>
-              <span class="lcd-balance" id="lcd-balance">Rp 0</span>
-              <span class="lcd-ip" id="lcd-ip">IP: 192.168.4.1</span>
-            </div>
-            <div class="lcd-footer" id="lcd-footer">
-              Status: READY
-            </div>
-          </div>
-
+        <div class="virtual-hardware-flex" style="flex-direction: column; align-items: center; justify-content: center;">
           <!-- Virtual Servo Motor SG90 -->
           <div class="virtual-servo-container" style="margin: 0 auto; text-align: center;">
             <span class="sim-label" style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Posisi Servo Laci:</span>
